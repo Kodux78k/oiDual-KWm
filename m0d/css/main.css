@@ -52,7 +52,7 @@ html,body{height:100%;margin:0;font-family:var(--font-ui),system-ui,-apple-syste
 
 /* subtle grid background */
 body{
-  min-height:100dvh;
+  min-height:100vh;
   
   overflow:auto;
   
@@ -81,7 +81,7 @@ body{
 #snap-zone.active{opacity:1}
 
 /* ========== CENTRAL CONTAINER & FUSION CARD ========== */
-.container{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;perspective:1200px;z-index:10}
+.container{position:absolute;inset:0;pointer-events:auto;display:flex;align-items:center;justify-content:center;perspective:1200px;z-index:10}
 .fusion-card{
   pointer-events:auto;
   width:100%; max-width:440px;
@@ -232,7 +232,7 @@ body{
 .response-container{
   position:fixed; left:20px; right:20px; bottom:160px;
   padding:12px;background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);
-  border-radius:20px; max-height:calc(100vh - 220px); overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:1;
+  border-radius:20px; max-height:calc(100vh - 220px); overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:100;
 }
 .page{display:none; opacity:0; transition:opacity 0.8s ease-in-out}
 .page.active{display:block; opacity:1}
@@ -271,7 +271,7 @@ body{
 .footer-text{margin-top:12px;font-size:0.78em;text-align:center;font-style:italic}
 
 /* ========== INPUT CONTAINER (bottom) ========== */
-.input-container{position:fixed;left:20px;right:20px;bottom:90px;display:flex;gap:10px;z-index:2;max-width:calc(100% - 40px)}
+.input-container{position:fixed;left:20px;right:20px;bottom:90px;display:flex;gap:10px;z-index:278;max-width:calc(100% - 40px)}
 .input-container input{flex:1;padding:10px;border:none;border-radius:20px;background:rgba(255,255,255,0.1);color:inherit;outline:none;font-size:16px;transition:background 0.4s}
 .input-container input:focus{background:rgba(255,255,255,0.2)}
 .input-container button{width:60px;height:60px;border:none;border-radius:50%;background:linear-gradient(45deg,#111,#5e5c5e);color:#fff;font-size:1.5em;cursor:pointer;display:flex;justify-content:center;align-items:center;animation:pulse 2s infinite ease-in-out;transition:transform 0.4s}
