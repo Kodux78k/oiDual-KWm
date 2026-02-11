@@ -3,7 +3,7 @@
   "short_name": "DUAL // Kwm",
   "description": "",
   "lang": "pt-BR",
-  "start_url": "./",
+  "start_url": "./splash.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
