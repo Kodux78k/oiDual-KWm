@@ -1,184 +1,221 @@
 <!DOCTYPE html>
-<html lang="pt-BR"><head>
-  <meta charset="utf-8">
-  <title>Fusion Card // Core Controller</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="manifest" href="manifest.json"> <meta name="theme-color" content="#05070a"> <link rel="apple-touch-icon" href="icon-192.png">
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Infodose | Menu Lateral</title>
+  <!-- Manifesto e ícones -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" id="theme-color-meta" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: auto;
+      background: radial-gradient(circle at center, #0a0a0a, #000000);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      transition: background 0.6s ease;
+    }
 
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;900&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;600;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+    body.light-mode {
+      background: radial-gradient(circle at center, #f0f0f0, #dcdcdc);
+      color: #111;
+    }
 
-<link rel="stylesheet" href="https://kodux78k.github.io/oi-Dual/css/main-v0.css">
-<link rel="stylesheet" href="https://kodux78k.github.io/oiDual-KxT-di_oi/css/main.css">
-<link rel="stylesheet" href="https://kodux78k.github.io/oi-Dual/css/DH10.css">
+    .content {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      position: absolute;
+      z-index: 1;
+    }
+
+    iframe.active {
+      opacity: 1;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.4s ease;
+      z-index: 30;
+    }
+
+    body.light-mode .theme-toggle {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .symbol-bar {
+      position: fixed;
+      top: 55%;
+      right: 20px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 40;
+      opacity: 1;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .symbol-bar.hidden {
+      opacity: 0;
+      transform: translateY(-50%) translateX(100%);
+      pointer-events: none;
+    }
+
+    .symbol-button {
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      color: white;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0.6;
+    }
+
+    .symbol-button:hover {
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.1);
+      box-shadow: 0 0 8px rgba(255,255,255,0.3);
+      opacity: 1;
+    }
+
+    body.light-mode .symbol-button {
+      background: rgba(0,0,0,0.05);
+      color: #111;
+    }
+
+    .lock-button {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: background 0.3s ease, border-color 0.3s ease;
+      z-index: 50;
+    }
+
+    .lock-button:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.8);
+    }
+
+    body.light-mode .lock-button {
+      border-color: rgba(0,0,0,0.5);
+    }
+
+    .menu-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      transition: transform 0.3s ease, background 0.3s ease, opacity 0.3s ease;
+      z-index: 50;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.1);
+    }
+
+    body.light-mode .menu-toggle {
+      background: rgba(0,0,0,0.05);
+      color: #111;
+    }
+
+    .menu-toggle-line {
+  p    width: 2px;
+      height: 16px;
+      background-color: white;
+    }
+
+    body.light-mode .menu-toggle-line {
+      background-color: #111;
+    }
+
+    .menu-toggle.active {
+      opacity: 0.4;
+    }
+  </style>
 </head>
-<body>
+<body class="dark-mode">
 
-  <!-- Ambient Blobs -->
-  <div class="ambient-light"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
-  <div id="snap-zone"></div>
-  <div class="toaster-wrap" id="toasterWrap"></div>
+  <div class="theme-toggle" onclick="toggleTheme()"></div>
 
-  <!-- CONTAINER PARA CENTRALIZAR INICIALMENTE -->
-  <div class="container">
-    <div class="fusion-card closed" id="mainCard">
-
-      <div class="card-header" id="cardHeader">
-        <div class="avatar-slot" id="avatarTarget" title="Gerenciar Chaves (Cofre)"></div>
-        <div class="text-block">
-          <div class="greeting-row">
-            <span class="txt-thin" id="lblHello">Oi,</span>
-            <span class="txt-heavy" id="lblName">Convidado</span>
-          </div>
-          <div class="brand-dual">DUAL</div>
-        </div>
-        <div class="clock-widget">
-          <div class="time-display" id="clockTime">00:00</div>
-          <span class="status-led">ONLINE</span>
-        </div>
-        <button class="hud-menu-btn" id="hudMenuBtn" title="Menu Rápido"><i data-lucide="menu"></i></button>
-      </div>
-      
-      <div class="orb-menu-trigger" id="orbMenuTrigger" title="Menu Rápido">●●●</div>
-      <div class="drag-handle"></div>
-
-      <div class="small-preview" id="smallPreview" title="Gerenciar Chaves">
-        <div class="mini-avatar" id="smallMiniAvatar"></div>
-        <div class="small-text" id="smallText">Aguardando ativação...</div>
-        <div class="ident-badge" id="smallIdent">--</div>
-      </div>
-
-      <div class="card-body" id="cardBody">
-        <!-- Main Input User -->
-        <div class="input-wrapper stagger-item">
-          <input type="text" class="cyber-input" id="inputUser" placeholder="Identifique-se..." autocomplete="off">
-        </div>
-
-        <!-- Section 1: ASCII Activation -->
-        <div class="activation-wrap stagger-item">
-          <div class="activation-toggle" onclick="toggleSection('activationCard')">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div style="width:10px;height:10px;border-radius:99px;background:var(--neon-cyan)"></div>
-              <strong style="letter-spacing:1px;font-size:0.9rem">Ativação ASCII</strong>
-            </div>
-            <div style="margin-left:auto;font-size:0.82rem;color:rgba(255,255,255,0.6)">BASE v1</div>
-          </div>
-          <div id="activationCard" class="activation-card activation-hidden">
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <div style="display:flex;align-items:center;gap:8px">
-                <div class="mini-avatar" id="actMiniAvatar"></div>
-                <div><div style="font-weight:700">CÉREBRO</div><div style="font-size:0.78rem;opacity:0.6"><span id="actName">User</span></div></div>
-              </div>
-              <div class="activation-badge" id="actBadge" style="margin-left:auto; color:var(--neon-cyan); font-size:0.8em">v:--</div>
-            </div>
-            <pre id="actPre" class="activation-pre">Carregando...</pre>
-            <div class="activation-controls" style="display:flex;gap:8px;margin-top:8px">
-              <button class="trigger-btn" id="copyActBtn">COPIAR</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 2: System & Neural (Config) -->
-        <div class="activation-wrap stagger-item">
-            <div class="activation-toggle" onclick="toggleSection('systemCard')">
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div style="width:10px;height:10px;border-radius:99px;background:var(--neon-purple)"></div>
-                  <strong style="letter-spacing:1px;font-size:0.9rem">SYSTEM &amp; NEURAL</strong>
-                </div>
-                <div style="margin-left:auto;font-size:0.82rem;color:rgba(255,255,255,0.6)">CONFIG</div>
-            </div>
-            <div id="systemCard" class="activation-card activation-hidden">
-                <div class="col">
-                   <div class="section-title">IDENTIDADE DA INFODOSE</div>
-                   <input type="text" id="infodoseNameInput" placeholder="Nome: World System..." style="width:100%;margin-bottom:8px;padding:8px;border-radius:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff">
-                   
-                   <div class="section-title" style="margin-top:8px">CONEXÃO NEURAL (SK)</div>
-                   <input type="password" id="apiKeyInput" placeholder="sk-or-..." autocomplete="off" style="width:100%;margin-bottom:6px;padding:8px;border-radius:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff">
-                   
-                   <div class="model-toggle">
-                      <select id="modelSelect" class="btn">
-                        <option value="" disabled="">Selecione Modelo</option>
-                        <option value="nvidia/nemotron-3-nano-30b-a3b:free">NemoTron (Free)</option>
-                        <option value="allenai/molmo-2-8b:free">MolMo (Free)</option>
-                        <option value="mistralai/devstral-2512:free">DevStral</option>
-                        <option value="openai/gpt-oss-120b:free">OSS120b</option>
-                      </select>
-                   </div>
-                   
-                   <div class="panel-divider" style="margin:10px 0; border-top:1px solid rgba(255,255,255,0.05)"></div>
-                   <button id="saveSystemBtn" class="trigger-btn" style="margin-top:12px;background:var(--neon-cyan);color:#000;border:none;font-weight:700">SALVAR CONFIGURAÇÃO</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="stagger-item" style="margin-top:4px">
-            <div class="stat-lbl" style="margin-bottom:6px; font-size:0.6rem; color:rgba(255,255,255,0.4)">INTERFACE MODE</div>
-            <div style="display:flex; gap:8px;">
-                <button class="trigger-btn mode-btn active-mode" id="btnModeCard" onclick="setMode('card')" style="flex:1" title="Modo Padrão">CARD</button>
-                <button class="trigger-btn mode-btn" id="btnModeOrb" onclick="setMode('orb')" style="flex:1" title="Flutuante">ORB</button>
-                <button class="trigger-btn mode-btn" id="btnModeHud" onclick="setMode('hud')" style="flex:1" title="Barra de Topo">HUD</button>
-            </div>
-        </div>
-
-      </div>
-    </div>
+  <div class="content">
+    <iframe id="frame" src="https://kodux78k.github.io/oi-Dual/oiDual-KwM.html" class="active"></iframe>
   </div>
 
-  <!-- KEYS MANAGER MODAL -->
-  <div id="keysModal" class="modal-overlay" aria-hidden="true">
-    <div class="keys-card" role="dialog">
-      <div class="keys-header">
-        <div>
-          <div id="keysTitle" style="font-weight:800;font-size:1.1rem;color:var(--neon-cyan)">USER KEYS MANAGER</div>
-          <div style="color:rgba(255,255,255,0.6);font-size:0.85rem">Gerencie suas chaves API com segurança local (Cofre).</div>
-        </div>
-        <button id="closeKeysBtn" class="small-btn">X</button>
-      </div>
-      <div class="key-list" id="keyList"></div>
-      <div class="form-section" style="margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.05)">
-        <div class="form-grid">
-          <input id="keyNameInput" placeholder="Nome da chave (ex: Principal)">
-          <input id="keyTokenInput" type="password" placeholder="Token / ESK (Opcional)">
-        </div>
-        <button id="addKeyBtn" class="small-btn" style="width:100%;margin-top:8px;background:rgba(255,255,255,0.1)">ADICIONAR CHAVE</button>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:15px;border-top:1px solid rgba(255,255,255,0.05);padding-top:12px">
-        <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:5px">
-          <i data-lucide="shield-check" style="width:14px"></i> <span id="vaultStatusText">Cofre Aberto</span>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button id="lockVaultBtn" class="small-btn danger">BLOQUEAR</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- <div class="symbol-bar">
+    <button class="symbol-button" onclick="loadPage('https://kodux78k.github.io/oiDual-0i0/')">◉</button>
+    <button class="symbol-button" onclick="loadPage('https://kodux78k.github.io/oiDual-duali/')">◉</button>
+    <button class="symbol-button" onclick="loadPage('https://kodux78k.github.io/oiDual-oiio/sFusi-szplasherzs.html')">◉</button>
+  </div> -->
 
-  <!-- VAULT UNLOCK MODAL -->
-  <div id="vaultModal" class="modal-overlay" aria-hidden="true">
-    <div class="keys-card">
-      <div class="vault-icon"><i data-lucide="lock" style="width:24px;height:24px"></i></div>
-      <h3 style="margin:0 0 10px 0;font-weight:800">ACESSO AO COFRE</h3>
-      <p style="margin:0 0 15px 0;font-size:0.9rem;color:rgba(255,255,255,0.6)">Seus dados estão criptografados. Digite a senha para desbloquear.</p>
-      <input type="password" id="vaultPassInput" class="cyber-input" style="text-align:center;margin-bottom:12px" placeholder="Senha...">
-      <div style="display:flex;gap:8px;justify-content:center">
-         <button id="vaultCancelBtn" class="small-btn">Cancelar</button>
-         <button id="vaultUnlockBtn" class="small-btn active-btn">DESBLOQUEAR</button>
-      </div>
-    </div>
-  </div>
+  <button class="lock-button" onclick="loadPage('https://kodux78k.github.io/oiDual-DSJSUSS-diFusi/oiDual-diUib-splashKard.html')"></button>
+
+  <script>
+    const frame = document.getElementById('frame');
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+    }
+
+    function loadPage(url) {
+      frame.classList.remove('active');
+      setTimeout(() => {
+        frame.src = url;
+        frame.onload = () => frame.classList.add('active');
+      }, 300);
+    }
+  </script>
 
 
-
-<script  src="https://kodux78k.github.io/oi-Dual/js/modules/inline-0.js"></script>
-<!--
-<script type="module" src="https://kodux78k.github.io/oi-Dual/js/main.js"></script>
--->
-
-<script src="https://kodux78k.github.io/oi-Dual/kxt-insert.js"></script>
-
-<script src="https://kodux78k.github.io/oi-Dual/DH0-insert.js"></script>
-</body>
-
-
-</html>
+</body></html>
