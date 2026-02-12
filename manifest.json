@@ -4,7 +4,7 @@
   "description": "",
   "lang": "pt-BR",
   "start_url": "splash.html",
-  "scope": "./",
+  
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#05070a",
