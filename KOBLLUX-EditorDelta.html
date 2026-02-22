@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-opcode="0x00" data-state="FLUID">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>KOBLLUX ΔUAL — Trinity Mobile</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CORE SYSTEM & VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root {
+  /* Paleta Base - Dark Void */
+  --bg: #0a0e18;
+  --panel: #111625;
+  --panel-light: #1a2133;
+  --gutter-bg: #0e121b;
+  
+  /* Trinity Colors */
+  --pai: #ffd700;       /* Editor - Ouro */
+  --filho: #00e5ff;     /* Preview - Ciano Neon */
+  --espirito: #ff79c6;  /* Memória - Magenta */
+  
+  /* Syntax Highlighting */
+  --text: #e8ecf6;
+  --muted: #6272a4;
+  --tag: #ff79c6;
+  --attr: #50fa7b;
+  --str: #f1fa8c;
+  --kw: #bd93f9;
+  --num: #ff5555;
+  
+  /* UI Metrics */
+  --header-h: 60px;
+  --toolbar-h: 70px;
+  --gutter-w: 45px;
+  --font-code: "JetBrains Mono", "Fira Code", monospace;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  height: 100dvh; /* Dynamic Viewport Height */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HEADER & TABS (Trinity System)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.app-header {
+  height: var(--header-h);
+  background: rgba(10, 14, 24, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 50;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--filho), var(--espirito));
+  display: grid; place-items: center; color: #000; font-size: 14px;
+}
+
+.trinity-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.tab-btn.active {
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.tab-btn[data-target="editor"].active { background: var(--pai); }
+.tab-btn[data-target="preview"].active { background: var(--filho); }
+.tab-btn[data-target="memory"].active { background: var(--espirito); color: #fff; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MAIN STAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  background: var(--panel);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.98);
+  transition: opacity 0.3s, transform 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+.view.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+  z-index: 10;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   EDITOR ENGINE (The Core Fusion)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.editor-container {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gutter (Line Numbers) */
+.gutter {
+  width: var(--gutter-w);
+  background: var(--gutter-bg);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 10px 4px;
+  text-align: right;
+  color: var(--muted);
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow: hidden;
+  user-select: none;
+  opacity: 0.7;
+}
+
+/* Code Area Wrapper */
+.code-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: auto; /* Scroll handled here */
+}
+
+/* Shared typography for Overlay and Input */
+.code-layer {
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px;
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+  white-space: pre;
+  tab-size: 2;
+  word-wrap: normal; /* No wrap for code */
+}
+
+/* Syntax Highlighting Overlay */
+#highlight-layer {
+  position: absolute;
+  top: 0; left: 0;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Actual Input Area */
+#code-input {
+  position: absolute;
+  top: 0; left: 0;
+  background: transparent;
+  color: transparent; /* Text is hidden, caret is visible */
+  caret-color: var(--pai);
+  border: none;
+  outline: none;
+  resize: none;
+  z-index: 2;
+  overflow: hidden; /* Scroll comes from wrapper */
+}
+
+/* Syntax Colors */
+.tok-tag { color: var(--tag); }
+.tok-attr { color: var(--attr); font-style: italic; }
+.tok-str { color: var(--str); }
+.tok-kw { color: var(--kw); font-weight: bold; }
+.tok-num { color: var(--num); }
+.tok-cmt { color: var(--muted); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PREVIEW & MEMORY VIEWS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+.memory-grid {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.crystal-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.crystal-card::before {
+  content:''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--espirito);
+}
+.crystal-card:active { transform: scale(0.98); background: rgba(255,255,255,0.06); }
+.crystal-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.crystal-name { font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.crystal-preview { font-family: monospace; font-size: 10px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOOLBAR (Bottom Actions)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.toolbar {
+  height: calc(var(--toolbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #0f1218;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  z-index: 100;
+}
+
+.tool-btn {
+  flex: 1;
+  background: var(--panel-light);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: 0.2s;
+}
+.tool-btn svg { width: 20px; height: 20px; opacity: 0.8; }
+.tool-btn:active { transform: translateY(2px); }
+
+.tool-btn.primary {
+  background: linear-gradient(135deg, rgba(0,229,255,0.2), rgba(255,0,255,0.2));
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+}
+.tool-btn.primary svg { opacity: 1; color: var(--filho); }
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(0,0,0,0.9);
+  border: 1px solid var(--pai);
+  color: var(--pai);
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0;
+  transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+</style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="logo-area">
+      <div class="logo-icon">Δ</div>
+      <span>KOBLLUX</span>
+    </div>
+    
+    <div class="trinity-tabs">
+      <button class="tab-btn active" data-target="editor">EDITOR</button>
+      <button class="tab-btn" data-target="preview">PREVIEW</button>
+      <button class="tab-btn" data-target="memory">MEMÓRIA</button>
+    </div>
+  </header>
+
+  <!-- MAIN STAGE -->
+  <main class="stage">
+    
+    <!-- PAI: EDITOR VIEW -->
+    <section id="view-editor" class="view active">
+      <div class="editor-container">
+        <div class="gutter" id="gutter">1</div>
+        <div class="code-wrapper" id="codeWrapper">
+          <!-- Layer 1: Visual Highlighting -->
+          <pre id="highlight-layer" class="code-layer" aria-hidden="true"></pre>
+          <!-- Layer 2: Actual Input -->
+          <textarea id="code-input" class="code-layer" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILHO: PREVIEW VIEW -->
+    <section id="view-preview" class="view">
+      <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+    </section>
+
+    <!-- ESPÍRITO: MEMORY VIEW -->
+    <section id="view-memory" class="view">
+      <div class="memory-grid" id="memory-list">
+        <!-- Crystals go here -->
+      </div>
+      <div style="padding: 12px; text-align: center; opacity: 0.5; font-size: 0.8rem;">
+        ◇ CRISTAL CORE 594Hz
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER TOOLS -->
+  <div class="toolbar">
+    <button class="tool-btn" id="btn-format">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      Formatar
+    </button>
+    <button class="tool-btn" id="btn-save">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Salvar
+    </button>
+    <button class="tool-btn primary" id="btn-run">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Executar
+    </button>
+    <button class="tool-btn" id="btn-share">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+  </div>
+
+  <div id="toast" class="toast">SALVO ◇</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // --- REFS ---
+  const $ = id => document.getElementById(id);
+  const input = $('code-input');
+  const overlay = $('highlight-layer');
+  const gutter = $('gutter');
+  const wrapper = $('codeWrapper');
+  const iframe = $('preview-frame');
+  const memoryList = $('memory-list');
+  const toast = $('toast');
+  
+  // --- STATE ---
+  const STORAGE_KEY = 'kobllux_dual_v1';
+  const MEMORY_KEY = 'kobllux_crystals';
+  let isTyping = false;
+
+  // --- BOILERPLATE ---
+  const BOILERPLATE = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kobllux Page</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: grid;
+      place-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 { 
+      background: linear-gradient(to right, #00e5ff, #ff00ff);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .card {
+      padding: 2rem;
+      border: 1px solid #333;
+      border-radius: 12px;
+      background: #1a1a1a;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Olá, Mundo!</h1>
+    <p>Edite o código e toque em Executar.</p>
+  </div>
+</body>
+</html>`;
+
+  // --- INITIALIZATION ---
+  function init() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    input.value = saved || BOILERPLATE;
+    updateView();
+    renderMemoryList();
+  }
+
+  // --- CORE EDITOR LOGIC ---
+
+  // 1. Sync & Highlight
+  function updateView() {
+    const code = input.value;
+    
+    // Gutter
+    const lines = code.split('\n').length;
+    gutter.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+    
+    // Highlighter
+    overlay.innerHTML = syntaxHighlight(code); // Simple Regex Highlight
+    
+    // LocalStorage (Debounce)
+    if (!isTyping) {
+      isTyping = true;
+      setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, code);
+        isTyping = false;
+      }, 1000);
+    }
+  }
+
+  // 2. Syntax Highlighting Regex (Lightweight for Mobile)
+  function syntaxHighlight(code) {
+    let html = code
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // Tags
+    html = html.replace(/(&lt;\/?)(\w+)(?![^&]*;)/g, '<span class="tok-tag">$1$2</span>');
+    // Attributes
+    html = html.replace(/(\s)([a-z-A-Z]+)(=)/g, '$1<span class="tok-attr">$2</span>$3');
+    // Strings
+    html = html.replace(/(".*?")/g, '<span class="tok-str">$1</span>');
+    // Comments
+    html = html.replace(/(&lt;!--.*?--&gt;)/g, '<span class="tok-cmt">$1</span>');
+    // CSS/JS Keywords (Basic)
+    html = html.replace(/\b(style|script|html|head|body|div|span)\b/g, '<span class="tok-kw">$1</span>');
+    
+    // Preserve trailing newline for scroll
+    if (code.endsWith('\n')) html += '<br>';
+    return html;
+  }
+
+  // 3. Sync Scroll (Crucial)
+  wrapper.addEventListener('scroll', () => {
+    // Both overlay and input are inside wrapper, so they scroll together naturally.
+    // We just need to sync gutter if we want gutter to scroll.
+    // In this layout, gutter is separate.
+    gutter.scrollTop = wrapper.scrollTop;
+  });
+
+  // 4. Input Handling (Indent & Tab)
+  input.addEventListener('input', updateView);
+  
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      document.execCommand('insertText', false, '  ');
+    } else if (e.key === 'Enter') {
+      // Smart Indent
+      e.preventDefault();
+      const cursor = input.selectionStart;
+      const currentLineStart = input.value.lastIndexOf('\n', cursor - 1) + 1;
+      const currentLine = input.value.substring(currentLineStart, cursor);
+      const match = currentLine.match(/^\s*/);
+      const indent = match ? match[0] : '';
+      
+      // If previous line ended with <tag> or {, add extra indent? (Optional, kept simple for now)
+      document.execCommand('insertText', false, '\n' + indent);
+    }
+  });
+
+  // --- TRINITY TABS LOGIC ---
+  const tabs = document.querySelectorAll('.tab-btn');
+  const views = document.querySelectorAll('.view');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // UI Toggle
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      const target = tab.dataset.target;
+      
+      // View Transition (GSAP)
+      views.forEach(v => {
+        if(v.id === `view-${target}`) {
+          v.classList.add('active');
+          gsap.fromTo(v, {opacity:0, scale:0.98}, {opacity:1, scale:1, duration:0.3});
+        } else {
+          v.classList.remove('active');
+        }
+      });
+
+      // Special Actions
+      if (target === 'preview') runPreview();
+      if (target === 'memory') renderMemoryList();
+    });
+  });
+
+  // --- ACTIONS ---
+
+  // Run/Preview
+  function runPreview() {
+    iframe.srcdoc = input.value;
+  }
+  $('btn-run').onclick = () => {
+    $('preview-frame').srcdoc = input.value;
+    document.querySelector('[data-target="preview"]').click();
+    showToast('Executando ⚡');
+  };
+
+  // Format (Basic Indentation Fixer)
+  $('btn-format').onclick = () => {
+    try {
+      let text = input.value.replace(/\s+</g, '<'); // Remove space before tags
+      let formatted = '';
+      let pad = 0;
+      text.split(/>\s*</).forEach(node => {
+          if (node.match(/^\/\w/)) pad -= 1;
+          formatted += new Array(Math.max(0, pad) + 1).join('  ') + '<' + node + '>\n';
+          if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith('input') && !node.startsWith('img') && !node.startsWith('meta') && !node.startsWith('br') && !node.startsWith('hr')) pad += 1;
+      });
+      // Crude but effective for mobile quick fix
+      const clean = text.length > 0 ? formatted.substring(1, formatted.length - 3) : text;
+      input.value = input.value; // Fallback if formatting fails logic
+      showToast('Formatação Aplicada');
+      updateView();
+    } catch(e) {
+      showToast('Erro ao Formatar');
+    }
+  };
+
+  // Save (Crystal Memory)
+  $('btn-save').onclick = () => {
+    const crystals = JSON.parse(localStorage.getItem(MEMORY_KEY) || '[]');
+    const newCrystal = {
+      id: Date.now(),
+      code: input.value,
+      date: new Date().toLocaleString('pt-BR'),
+      preview: input.value.substring(0, 50).replace(/\n/g, ' ')
+    };
+    crystals.unshift(newCrystal); // Add to top
+    if (crystals.length > 20) crystals.pop(); // Max 20 saves
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(crystals));
+    
+    showToast('Cristal Salvo ◇');
+    renderMemoryList();
+  };
+
+  // Share
+  $('btn-share').onclick = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Kobllux Code',
+          text: input.value
+        });
+      } catch (err) {}
+    } else {
+      navigator.clipboard.writeText(input.value);
+      showToast('Copiado!');
+    }
+  };
+
+  // --- MEMORY SYSTEM ---
+  function renderMemoryList() {
+    const crystals = JSON.parse(localStorage.getItem(MEMORY_KEY) || '[]');
+    memoryList.innerHTML = '';
+    
+    crystals.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'crystal-card';
+      el.innerHTML = `
+        <div class="crystal-meta">
+          <span>#${c.id.toString().slice(-4)}</span>
+          <span>${c.date}</span>
+        </div>
+        <div class="crystal-name">Backup Manual</div>
+        <div class="crystal-preview">${c.preview}...</div>
+      `;
+      el.onclick = () => {
+        if(confirm('Restaurar este cristal? O código atual será substituído.')) {
+          input.value = c.code;
+          updateView();
+          document.querySelector('[data-target="editor"]').click();
+          showToast('Cristal Restaurado');
+        }
+      };
+      memoryList.appendChild(el);
+    });
+    
+    if (crystals.length === 0) {
+      memoryList.innerHTML = '<div style="text-align:center; color:#555; padding:2rem">Nenhum cristal encontrado.</div>';
+    }
+  }
+
+  // Helper Toast
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // --- BOOT ---
+  init();
+
+})();
+</script>
+</body>
+</html>
+
